@@ -1,4 +1,6 @@
 # Byte-compiled / optimized / DLL files
+**/Arq_Entrada/**
+**/Arq_Saida/**
 __pycache__/
 *.py[codz]
 *$py.class
