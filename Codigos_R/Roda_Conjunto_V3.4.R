@@ -27,8 +27,8 @@ if(file.exists(caminho_data)){
   file.remove(caminho_data)
 }
 
-tempo_regressao<-10
-dias_previstos<-30
+tempo_regressao<-120
+dias_previstos<-14
 agrupamento<-cbind(3,3,3,5)
 modelos<-c('ETA40','ECMWF','GEFS')
 alpha<-cbind(2,2,2,2)
@@ -55,7 +55,7 @@ write(texto,file=arq_log,append=TRUE)
 #================================ cria o cluster ==================================================================================================================
 numCores <- detectCores()
 ensemble<-matrix(NA_real_,nrow=dias_previstos,ncol=length(bacias))
-clust <- makeCluster(numCores-1, type = 'PSOCK') 
+clust <- makeCluster(numCores-2, type = 'PSOCK') 
 clusterExport(clust, varlist = c('roda_bacia', 'roda_lp','roda_vies','roda_fator','dia_previsao','tempo_regressao','dias_previstos','agrupamento','modelos','alpha','beta','bacias','lambdas'), envir = .GlobalEnv)
 
 #=========================== roda o conjunto para as bacias ========================================================================================================

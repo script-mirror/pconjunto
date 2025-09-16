@@ -1,0 +1,10 @@
+env
+venv
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+setup_modelos.py
+build.sh
+run.sh
