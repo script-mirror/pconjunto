@@ -17,10 +17,10 @@ def processar_item(item, nome_modelo):
         os.remove(output)
     else:
         os.popen(f"mv {output} {nome_modelo}/")
-    return f"Processado: {item['dataProduto']}"
+    return f"Processado: {nome_modelo} {item['dataProduto']}"
 
 
-def processar_webhook(nome_webhook: str, nome_modelo: str, date_range=200, max_workers=os.cpu_count()*10):
+def processar_webhook(nome_webhook: str, nome_modelo: str, date_range=200, max_workers=os.cpu_count()*4):
     items = get_latest_webhook_product(nome_webhook, datetime.datetime.now(), date_range=date_range)
     
     with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
