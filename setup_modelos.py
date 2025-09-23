@@ -22,7 +22,11 @@ def processar_item(item, nome_modelo):
 
 def processar_webhook(nome_webhook: str, nome_modelo: str, date_range=200, max_workers=os.cpu_count()*4):
     items = get_latest_webhook_product(nome_webhook, datetime.datetime.now(), date_range=date_range)
-    
+    datas_disponiveis = get_datas_disponiveis(nome_modelo)
+    items = [item for item in items if item['dataProduto'] not in datas_disponiveis]
+    if not items:
+        print(f"Nenhum novo item para processar em {nome_modelo}")
+        return
     with concurrent.futures.ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = [executor.submit(processar_item, item, nome_modelo) for item in items]
         
@@ -34,6 +38,15 @@ def processar_webhook(nome_webhook: str, nome_modelo: str, date_range=200, max_w
                 print(f"Erro no processamento: {e}")
 
 
+def get_datas_disponiveis(path_modelo: str):
+    arquivos = os.popen(f"ls {path_modelo}").read().split('\n')[:-1]
+    datas = []
+    for arquivo in arquivos:
+        if 'observado' in path_modelo.lower():
+            datas.append(datetime.datetime.strptime(arquivo[-12:][:-4], '%d%m%Y').strftime('%d/%m/%Y'))
+        else:
+            datas.append(datetime.datetime.strptime(arquivo[-10:][:-4], '%d%m%y').strftime('%d/%m/%Y'))
+    return datas    
 if __name__ == "__main__":
     processar_webhook("Modelo ETA", "./Arq_Entrada/ETA40")
     processar_webhook("Modelo ECMWF", "./Arq_Entrada/ECMWF")
