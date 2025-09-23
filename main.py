@@ -72,10 +72,47 @@ def clear_previous_output():
     logger.info("Limpeza concluida")
 
 
+def verificar_arquivos_entrada(data_rodada: datetime.date):
+    logger.info(f"Verificando arquivos de entrada para a data {data_rodada}")
+    modelos = ['ECMWF', 'ETA40', 'GEFS']
+    for modelo in modelos:
+        pasta = f"Arq_Entrada/{modelo}"
+        nome_arquivo = f"{modelo}_m_{data_rodada.strftime('%d%m%y')}.dat"
+        
+        logger.info(f"Verificando arquivo {nome_arquivo} na pasta {pasta}")
+        
+        result = os.popen(f"ls {pasta}").read().strip().split('\n')
+        arquivos = [arq for arq in result if arq]
+        
+        if nome_arquivo not in arquivos:
+            erro_msg = f"Arquivo {nome_arquivo} nao encontrado na pasta {pasta}."
+            logger.error(erro_msg)
+            raise FileNotFoundError(erro_msg)
+        
+        logger.info(f"Arquivo {nome_arquivo} encontrado com sucesso")
+    
+    data_observado = data_rodada - datetime.timedelta(days=1)
+    pasta_observado = "Arq_Entrada/Observado"
+    nome_arquivo_observado = f"psat_{data_observado.strftime('%d%m%Y')}.txt"
+    
+    logger.info(f"Verificando arquivo observado {nome_arquivo_observado} na pasta {pasta_observado}")
+    
+    result_obs = os.popen(f"ls {pasta_observado}").read().strip().split('\n')
+    arquivos_obs = [arq for arq in result_obs if arq]
+    
+    if nome_arquivo_observado not in arquivos_obs:
+        erro_msg = f"Arquivo observado {nome_arquivo_observado} nao encontrado na pasta {pasta_observado}."
+        logger.error(erro_msg)
+        raise FileNotFoundError(erro_msg)
+    
+    logger.info(f"Arquivo observado {nome_arquivo_observado} encontrado com sucesso")
+    logger.info("Todos os arquivos de entrada verificados com sucesso")
+
 def process_input(data_rodada: datetime.date):
     logger.info(f"Iniciando processamento de entrada para a data {data_rodada}")
-    write_date_input(data_rodada)
     clear_previous_output()
+    verificar_arquivos_entrada(data_rodada)
+    write_date_input(data_rodada)
     logger.info("Processamento de entrada concluido")
 
 
