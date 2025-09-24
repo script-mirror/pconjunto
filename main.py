@@ -32,6 +32,8 @@ def post_chuva(df: pd.DataFrame):
         json=df.to_dict(orient='records'),
         headers=get_auth_header(),
     )
+    df['dt_prevista'] = pd.to_datetime(df['dt_prevista']).dt.strftime('%Y-%m-%d')
+    df['dt_rodada'] = pd.to_datetime(df['dt_prevista']).dt.strftime('%Y-%m-%dT00:00:00')
     res.raise_for_status()
     logger.info(f'Dados de chuva enviados com sucesso para o modelo {modelo}')
     return res.json()
