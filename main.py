@@ -124,7 +124,7 @@ def process_remvies_models(data_rodada: datetime.date):
     modelos = ['ECMWF', 'ETA40', 'GEFS']
     for modelo in modelos:
         logger.info(f"Processando modelo {modelo}")
-        df = pd.read_fwf(f"Arq_Saida/{modelo}_rem_vies.dat", header=None)
+        df = pd.read_fwf(f"Arq_Saida/{modelo}_rem_vies.dat", header=None).dropna(axis=1)
         df.columns = ['subbacia', 'lon', 'lat', *[data_rodada + datetime.timedelta(days=x+1) for x in range(len(df.columns)-3)]]
 
         df = df.merge(postos, on='subbacia', how='left')
