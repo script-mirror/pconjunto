@@ -27,7 +27,7 @@ def post_chuva(df: pd.DataFrame):
     modelo = df['modelo'].unique()[0]
     logger.info(f'Enviando dados de chuva para o modelo {modelo} ({len(df)} registros)')
     df['dt_prevista'] = pd.to_datetime(df['dt_prevista']).dt.strftime('%Y-%m-%d')
-    df['dt_rodada'] = pd.to_datetime(df['dt_prevista']).dt.strftime('%Y-%m-%dT00:00:00')
+    df['dt_rodada'] = pd.to_datetime(df['dt_rodada']).dt.strftime('%Y-%m-%dT00:00:00')
     res = requests.post(
         f"{constants.BASE_URL}/api/v2/rodadas/chuva/previsao/modelos",
         json=df.to_dict(orient='records'),
