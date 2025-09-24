@@ -14,7 +14,7 @@ fi
 python3 main.py process_input "${data_rodada}"
 if [ $? -ne 0 ]; then
     echo "Erro ao executar process_input. Encerrando execução."
-    exit 1
+    exit 0
 fi
 
 Rscript ./Codigos_R/Roda_Conjunto_V3.4.R
