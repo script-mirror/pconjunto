@@ -179,6 +179,7 @@ def send_sensitivity_file(df_sensibilidade: pd.DataFrame, data_rodada: datetime.
     logger.info(f"Enviando arquivo de sensibilidade para o modelo {modelo}")
     arquivos = []
     for data_prevista in df_sensibilidade['dt_prevista'].unique():
+        data_prevista = datetime.datetime.strptime(str(data_prevista), '%Y-%m-%d').date()
         df_dia = df_sensibilidade[df_sensibilidade['dt_prevista'] == data_prevista]
         path_arquivo = f'Arq_Saida/{modelo}_p{data_rodada.strftime("%d%m%y")}a{data_prevista.strftime("%d%m%y")}.dat'
         arquivos.append(path_arquivo)
