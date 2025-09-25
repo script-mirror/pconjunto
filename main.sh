@@ -8,7 +8,7 @@ data_rodada="$1"
 python3 setup_modelos.py
 if [ $? -ne 0 ]; then
     echo "Erro ao executar setup_modelos. Encerrando execução."
-    exit 1
+    exit 0
 fi
 
 python3 main.py process_input "${data_rodada}"

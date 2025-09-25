@@ -227,7 +227,7 @@ def generate_derived_models(data_rodada: datetime.date, df_pmedia: pd.DataFrame)
     proxima_quinta = data_rodada + datetime.timedelta(days=(3-data_rodada.weekday()+7)%7)
     logger.info(f"Próxima quinta-feira calculada: {proxima_quinta}")
     generate_model_sensitivity("GEFS-ONS", data_rodada, df_pmedia, proxima_quinta, "PCONJUNTO-ONS")
-    generate_model_sensitivity("ECMWF-ENS-ONS", data_rodada, df_pmedia, proxima_quinta, "PCONJUNTO2-ONS")
+    generate_model_sensitivity("ECMWF-ONS", data_rodada, df_pmedia, proxima_quinta, "PCONJUNTO2-ONS")
     logger.info("Geracao de modelos derivados concluida")
 
 
