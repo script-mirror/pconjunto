@@ -1,8 +1,5 @@
 import os
-import pdb
 import sys
-import glob
-import zipfile
 import datetime
 import requests
 import pandas as pd
@@ -137,22 +134,6 @@ def process_remvies_models(data_rodada: datetime.date):
     logger.info("Processamento dos modelos REMVIES concluido")
 
 
-def send_pmedia_file(data_rodada: datetime.date):
-    logger.info(f"Enviando arquivos PMEDIA para a data {data_rodada}")
-    arquivos = glob.glob("Arq_Saida/PMEDIA_p*.dat")
-    logger.info(f"Encontrados {len(arquivos)} arquivos PMEDIA para compactar")
-    path_zip = f'Arq_Saida/PMEDIA_{data_rodada}.zip'
-    with zipfile.ZipFile(path_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for arquivo in arquivos:
-            zipf.write(arquivo, arcname=arquivo.split('/')[-1])
-    logger.info(f"Arquivo compactado criado: {path_zip}")
-    upload_raw_rain_map(
-        file_path=path_zip,
-        modelo='PMEDIA-ONS',
-        rodada=f"{data_rodada}T00:00:00",
-    )
-    logger.info("Upload do arquivo PMEDIA concluido")
-
 def process_pmedia(data_rodada: datetime.date):
     logger.info(f"Iniciando processamento PMEDIA para a data {data_rodada}")
     df_completo = pd.DataFrame(columns=['cd_subbacia', 'dt_prevista', 'vl_chuva', 'dt_rodada', 'modelo'])
@@ -171,31 +152,8 @@ def process_pmedia(data_rodada: datetime.date):
     df_completo['modelo'] = "PMEDIA-ONS"
     logger.info(f"PMEDIA processado com {len(df_completo)} registros")
     post_chuva(df_completo)
-    send_pmedia_file(data_rodada)
     logger.info("Processamento PMEDIA concluido")
     return pd.DataFrame(df_completo)
-
-def send_sensitivity_file(df_sensibilidade: pd.DataFrame, data_rodada: datetime.date, modelo: str):
-    logger.info(f"Enviando arquivo de sensibilidade para o modelo {modelo}")
-    arquivos = []
-    for data_prevista in df_sensibilidade['dt_prevista'].unique():
-        data_prevista = datetime.datetime.strptime(str(data_prevista), '%Y-%m-%d').date()
-        df_dia = df_sensibilidade[df_sensibilidade['dt_prevista'] == data_prevista]
-        path_arquivo = f'Arq_Saida/{modelo}_p{data_rodada.strftime("%d%m%y")}a{data_prevista.strftime("%d%m%y")}.dat'
-        arquivos.append(path_arquivo)
-        df_dia[['vl_lon', 'vl_lat', 'vl_chuva']].to_csv(path_arquivo, index=False, header=False, sep=' ')
-    
-    path_zip = f'Arq_Saida/{modelo}_{data_rodada}.zip'
-    logger.info(f"Criando arquivo compactado: {path_zip}")
-    with zipfile.ZipFile(path_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
-        for arquivo in arquivos:
-            zipf.write(arquivo, arcname=arquivo.split('/')[-1])
-    upload_raw_rain_map(
-        file_path=path_zip,
-        modelo=modelo,
-        rodada=f"{data_rodada}T00:00:00",
-    )
-    logger.info(f"Upload do arquivo {modelo} concluido")
 
 
 def generate_model_sensitivity(
@@ -213,9 +171,7 @@ def generate_model_sensitivity(
     df_sensibilidade = pd.concat([df_chuva, df_pmedia], ignore_index=True)
     df_sensibilidade = df_sensibilidade.sort_values(['cd_subbacia', 'dt_prevista'])
     df_sensibilidade['modelo'] = nome_modelo_saida
-    df_postos = get_postos()[['id', 'vl_lat', 'vl_lon']].rename(columns={'id': 'cd_subbacia'})
     post_chuva(df_sensibilidade)
-    send_sensitivity_file(df_sensibilidade.merge(df_postos, on='cd_subbacia'), data_rodada, nome_modelo_saida)
     logger.info(f"Modelo de sensibilidade {nome_modelo_saida} processado com sucesso")
 
 
@@ -238,60 +194,6 @@ def process_output(data_rodada: datetime.date):
     df_pmedia = process_pmedia(data_rodada)
     generate_derived_models(data_rodada, df_pmedia)
     logger.info("Processamento de saida concluido")
-
-
-def upload_raw_rain_map(
-    file_path: str,
-    modelo: str,
-    rodada: str,
-) -> dict:
-    logger.info(f"Iniciando upload do arquivo {file_path} para o modelo {modelo}")
-    if not os.path.exists(file_path):
-        logger.error(f"Arquivo nao encontrado: {file_path}")
-        raise FileNotFoundError(f"Arquivo nao encontrado: {file_path}")
-    headers = get_auth_header()
-    data = {
-        'modelo': modelo,
-        'rodada': rodada
-    }
-    
-    try:
-        with open(file_path, 'rb') as file:
-            files = {'file': file}
-            response = requests.post(f"{constants.BASE_URL}/pluv/api/raw-rain-map/", headers=headers, data=data, files=files)
-            response.raise_for_status()
-            logger.info(f'Upload realizado com sucesso: {response.text} Status Code: {response.status_code}')
-            return {
-                'success': True,
-                'status_code': response.status_code,
-                'data': response.json(),
-                'message': 'Upload realizado com sucesso'
-            }
-            
-    except requests.exceptions.HTTPError as e:
-        logger.error(f'Erro HTTP durante upload: {e} - Status: {response.status_code} - Response: {response.text}')
-        return {
-            'success': False,
-            'status_code': response.status_code,
-            'error': f'Erro HTTP: {e}',
-            'response_text': response.text
-        }
-    except requests.exceptions.RequestException as e:
-        logger.error(f'Erro na requisicao durante upload: {e}')
-        return {
-            'success': False,
-            'status_code': None,
-            'error': f'Erro na requisicao: {e}',
-            'response_text': None
-        }
-    except Exception as e:
-        logger.error(f'Erro inesperado durante upload: {e}')
-        return {
-            'success': False,
-            'status_code': None,
-            'error': f'Erro inesperado: {e}',
-            'response_text': None
-        }
 
 
 
