@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y \
     python3 \
     python3-pip \
     git \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 RUN R -e "install.packages(c('lpSolve', 'readxl', 'minpack.lm'), repos='https://cloud.r-project.org/')"
 
@@ -34,6 +34,12 @@ COPY . .
 
 RUN chmod +x /app/main.sh
 
+RUN mkdir -p /app/Arq_Entrada/ETA40 && \
+    mkdir -p /app/Arq_Entrada/ECMWF && \
+    mkdir -p /app/Arq_Entrada/GEFS && \
+    mkdir -p /app/Arq_Entrada/Observado && \
+    mkdir -p /app/Arq_Saida
+
 ENV data_rodada=""
 
-CMD /app/main.sh "$data_rodada"
+CMD ["/app/main.sh"]

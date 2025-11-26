@@ -3,10 +3,10 @@ import datetime
 import os
 import zipfile
 import concurrent.futures
-from middle.utils import Constants
+from middle.utils import Constants, setup_logger
 constants = Constants()
 os.makedirs(constants.PATH_TMP, exist_ok=True)
-
+logger = setup_logger()
 
 def processar_item(item, nome_modelo):
     output = handle_webhook_file(item, constants.PATH_TMP)
@@ -48,8 +48,17 @@ def get_datas_disponiveis(path_modelo: str):
             datas.append(datetime.datetime.strptime(arquivo[-10:][:-4], '%d%m%y').strftime('%d/%m/%Y'))
     return datas    
 if __name__ == "__main__":
+    logger.info("Iniciando download de dados da S3")
+    
+    os.makedirs("./Arq_Entrada/ETA40", exist_ok=True)
+    os.makedirs("./Arq_Entrada/ECMWF", exist_ok=True)
+    os.makedirs("./Arq_Entrada/GEFS", exist_ok=True)
+    os.makedirs("./Arq_Entrada/Observado", exist_ok=True)
+    
     processar_webhook("Modelo ETA", "./Arq_Entrada/ETA40")
     processar_webhook("Modelo ECMWF", "./Arq_Entrada/ECMWF")
     processar_webhook("Modelo GEFS", "./Arq_Entrada/GEFS")
     processar_webhook("Precipitação por Satélite – ONS", "./Arq_Entrada/Observado")
     processar_webhook("Precipitação por Satélite.", "./Arq_Entrada/Observado")
+    
+    logger.info("Download de dados da S3 concluído com sucesso")
