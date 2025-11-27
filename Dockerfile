@@ -30,10 +30,13 @@ RUN git config --global credential.helper store && \
 
 RUN pip3 install --no-cache-dir --break-system-packages -r requirements.txt
 
+# Copiar TODO o conteúdo do projeto (incluindo Arq_Entrada/configuracao.xlsx)
 COPY . .
 
 RUN chmod +x /app/main.sh
 
+# Criar diretórios de modelos (que serão populados em runtime pelo setup_modelos.py)
+# Usar mkdir sem -p para não sobrescrever se já existir
 RUN mkdir -p /app/Arq_Entrada/ETA40 && \
     mkdir -p /app/Arq_Entrada/ECMWF && \
     mkdir -p /app/Arq_Entrada/GEFS && \
